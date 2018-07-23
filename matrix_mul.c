@@ -19,7 +19,7 @@ typedef struct _ThreadParam {
     int id;
 } ThreadParam;
 
-#define STRASSEN_THRESHOLD 32
+#define STRASSEN_THRESHOLD 1
 bool TRANSPOSE = false;
 bool SHADOW_COPY = false;
 bool KEEP_STRASSEN = false;
@@ -244,8 +244,6 @@ void* pthread_func(void *arg)
 
 void strassen_mul(const Matrix *A_all, const Matrix *B_all, Matrix *C_all, bool parallel)
 {
-    int size = A_all->size;
-
     Matrix A[4] = {0},
            B[4] = {0},
            C[4] = {0},
