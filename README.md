@@ -70,7 +70,7 @@ void strassen_mul(const Matrix *A_all, const Matrix *B_all, Matrix *C_all, bool 
     ...
 }
 ```
-### 5. Strassen + Cache friendly + Multithread + Keep Strassen + Shadow copy
+### 5. Strassen + Cache friendly + Multithread + Keep Strassen + Shallow copy
 Strassen 中需要把矩陣切成四小塊，那比較直覺的做法就會是直接 copy 四個小矩陣出來，而我們嘗試讓小 matrix 用 pointer 指向大 matrix 對應的位置，這樣就可以節省 copy 的時間和存值的空間了。
 當然爲了讓該 2D array 可以不用是一整塊連續的memory，該 2D array 會是 dynamiclly allocate 的。
 詳見 code
@@ -78,7 +78,7 @@ Strassen 中需要把矩陣切成四小塊，那比較直覺的做法就會是�
 typedef struct _Matrix {
     int **v; 
     int size;
-    bool shadow_copy;
+    bool shallow_copy;
 } Matrix; 
 ```
 ```c
@@ -88,10 +88,10 @@ void matrix_divide_4(const Matrix *thiz, Matrix *blocks)
     int size_divided = size/2;
     for (int i = 0; i < 4; ++i)
         matrix_try_create(&blocks[i], size_divided);
-    if (SHADOW_COPY) { // shadow copy
+    if (SHALLOW_COPY) { // shallow copy
         for (int i = 0; i < 4; ++i) {
             free(blocks[i].v[0]);
-            blocks[i].shadow_copy = true;
+            blocks[i].shallow_copy = true;
         }    
         for (int i = 0; i < size_divided; ++i) {
             blocks[0].v[i] = thiz->v[i];
@@ -111,7 +111,7 @@ void matrix_divide_4(const Matrix *thiz, Matrix *blocks)
     }        
 }       
 ```
-### 6. Strassen + Multithread + Keep Strassen + Shadow copy
+### 6. Strassen + Multithread + Keep Strassen + Shallow copy
 與方法 5 的差別是少了 cache friendly。
 這是因爲後來發現用了 Keep Strassen 之後，大小爲 1024 和 4096 的測資在沒 Cache friendly 的情況下會跑得比較好，其原因還有待思考，但在加了 -O3 flag 之後就不會有這不正常的現象。（沒 cache friendly 終於比較慢了）
 
@@ -138,4 +138,4 @@ void matrix_divide_4(const Matrix *thiz, Matrix *blocks)
 
 謝永家: Cache friendly + Multithread
 王皓玄: Ordinary + Strassen
-陳聲發: Keep Strassen + Shadow copy + 整合
+陳聲發: Keep Strassen + Shallow copy + 整合
