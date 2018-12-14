@@ -1,15 +1,19 @@
 # Programming Language Homework 4 報告
-## 實作平行架構之傳統 Matrix Multiplication 與 Strassen's Matrix Multiplication
+## 傳統 Matrix Multiplication 與 Strassen's Matrix Multiplication 平行運算
+
+[GitHub siahuat0727/matrix-multiplication](https://github.com/siahuat0727/matrix-multiplication)
 
 ## 語言
-### C language
+
+C
 
 ## 編譯
+
 正常編譯
 ```
 make
 ```
-外掛編譯
+最佳化編譯
 ```
 make opt
 ```
@@ -72,7 +76,9 @@ void strassen_mul(const Matrix *A_all, const Matrix *B_all, Matrix *C_all, bool 
 ```
 ### 5. Strassen + Cache friendly + Multithread + Keep Strassen + Shallow copy
 Strassen 中需要把矩陣切成四小塊，那比較直覺的做法就會是直接 copy 四個小矩陣出來，而我們嘗試讓小 matrix 用 pointer 指向大 matrix 對應的位置，這樣就可以節省 copy 的時間和存值的空間了。
-當然爲了讓該 2D array 可以不用是一整塊連續的memory，該 2D array 會是 dynamiclly allocate 的。
+
+![](https://i.imgur.com/UX4KXhv.png)
+
 詳見 code
 ```c
 typedef struct _Matrix {
@@ -111,31 +117,42 @@ void matrix_divide_4(const Matrix *thiz, Matrix *blocks)
     }        
 }       
 ```
+
+#### Deep copy
+Time complexity: $O(nm)$
+Space complexity: $O(nm)$
+
+#### Shallow copy
+Time complexity: $O(n)$
+Space complexity: $O(n)$
+
+$n$: number of row of matrix
+$m$: number of column of matrix
+
+
 ### 6. Strassen + Multithread + Keep Strassen + Shallow copy
 與方法 5 的差別是少了 cache friendly。
 這是因爲後來發現用了 Keep Strassen 之後，大小爲 1024 和 4096 的測資在沒 Cache friendly 的情況下會跑得比較好，其原因還有待思考，但在加了 -O3 flag 之後就不會有這不正常的現象。（沒 cache friendly 終於比較慢了）
 
 ### 7. 外掛 optimization flag
 優化怎麼能忘了 GNU 自帶的 optimization flag！
-以上好方法計算 4096×4096 需要 30++ 秒，開了 -O3 外掛後只需 3.++ 秒！
+以上的最好方法計算 4096×4096 需要 30++ 秒，使用 gcc 的 -O3 optimization flag 之後只需 3.++ 秒！
 
 ## 效能分析
 
-以下以 4096×4096 爲輸入測資來觀察每個方法所需時間
-隨着方法的改善逐漸變快
-但奇怪的是發現最後少了 cache friendly 反而更快？
+### 1024 * 1024
+
+![](https://i.imgur.com/MnCcinJ.png)
+
+### 4096 * 4096
+
+![](https://i.imgur.com/MzZKOH5.png)
 
 ![](https://i.imgur.com/MvkdO4a.png)
 
-一開始 cache friendly 可以極大部分時間，後來影響偏小
+### 4096 * 4096 with optimization flag -O3
 
-而加了 -O3 後的結果則如下（少了 cache friendly 的不再比較快了）
+![](https://i.imgur.com/CVZJthF.png)
 
 ![](https://i.imgur.com/NpISlPs.png)
-*忽略爲了測 16×16 的時間單位改成 us 後忘了改回來和懶惰重新跑的過程*
 
-## 分工
-
-謝永家: Cache friendly + Multithread
-王皓玄: Ordinary + Strassen
-陳聲發: Keep Strassen + Shallow copy + 整合
